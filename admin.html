@@ -18,7 +18,12 @@
 
 <body>
     <div id="admin">
-
+        <div id="list-titles">
+            <div onclick="switchSection(1)" id="btn-s1">Catégorie</div>
+            <div onclick="switchSection(2)" id="btn-s2">Site</div>
+        </div>
+        <section id="s1"></section>
+        <section id="s2"></section>
     </div>
 
     <!-- Option 1: Bootstrap Bundle with Popper -->
@@ -30,13 +35,31 @@
     <script src="script/script.js"></script>
     <script>
         let conn = null;
+        let btn_section1 = document.getElementById("btn-s1");
+        let btn_section2 = document.getElementById("btn-s2");
+        let section1 = document.getElementById("s1");
+        let section2 = document.getElementById("s2");
+        switchSection(1);
+
         (async () => {
             conn = await openDB();
             await wait(0.1);
 
         })();
 
-
+        function switchSection(s) {
+            if (s == 1) {
+                btn_section1.classList.add("active");
+                btn_section2.classList.remove("active");
+                section1.style.display = "block";
+                section2.style.display = "none";
+            } else {
+                btn_section1.classList.remove("active");
+                btn_section2.classList.add("active");
+                section1.style.display = "none";
+                section2.style.display = "block";
+            }
+        }
     </script>
 </body>
 

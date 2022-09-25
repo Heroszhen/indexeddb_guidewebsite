@@ -183,3 +183,34 @@
 #home-menu>section .bi {
     margin-right: 10px;
 }
+
+
+
+#admin {
+    width: 100%;
+    min-height: 100vh;
+    padding: 5px;
+    background-color: rgb(233, 233, 233);
+}
+
+#admin #list-titles {
+    display: flex;
+}
+
+#admin #list-titles>div {
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+#admin #list-titles>div.active {
+    border: 1px solid transparent;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-bottom: none;
+    background-color: white;
+}
+
+#admin section {
+    background-color: white;
+    min-height: calc(100vh - 45px);
+}
