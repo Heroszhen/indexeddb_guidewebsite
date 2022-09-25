@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+
+</head>
+
+<body>
+    <script src="script/db.js"></script>
+    <script src="script/script.js"></script>
+    <script>
+        let conn = null;
+        (async () => {
+            await delDB();
+            await wait(0.1);
+            conn = await openDB()
+            await wait(0.1);
+            init(conn);
+        })();
+    </script>
+</body>
+
+</html>

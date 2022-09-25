@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
+
+    <link href="style.css" rel="stylesheet">
+
+    <title>Guide</title>
+</head>
+
+<body>
+    <div id="home">
+        <div id="nav">
+            <a href="admin.html">Admin</a>
+            <div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="inputchecked"
+                        onchange="switchList(event)">
+                    <label class="form-check-label" for="inputchecked">Catégories</label>
+                </div>
+            </div>
+        </div>
+        <div class="container" style="padding-top:100px;">
+            <div class="row justify-content-center">
+                <div class="col-md-7 col-lg-5">
+                    <div class="wrap d-flex">
+                        <input class="form-control form-control-sm me-2" type="text" id="input-search"
+                            placeholder="rechercher...." />
+                    </div>
+                </div>
+                <div class="col-md-10 col-lg-9 mt-5" id="section1">
+                    <div id="list-links"></div>
+                </div>
+                <div class="col-md-12 col-lg-11 mt-5" id="section2">
+                    <div id="list-sites" class="scrollbar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="home-menu">
+        <section>
+            <i class="bi bi-person-fill"></i>
+            Mes informations
+        </section>
+        <section onclick="showModal(1)">
+            <i class="bi bi-share-fill"></i>
+            Ajouter un raccourci
+        </section>
+        <section onclick="reloadPage()">
+            <i class="bi bi-arrow-clockwise"></i>
+            Actualiser
+        </section>
+    </div>
+
+
+    <template id="template-link">
+        <a class="link" href="" target="_blank">
+            <div class="delete"><span data-id="">X</span></div>
+            <div class="title"></div>
+        </a>
+    </template>
+
+    <template id="template-category">
+        <div class="onecategory">
+            <div class="category-title"></div>
+            <div class="wrap-sites"></div>
+        </div>
+    </template>
+    <template id="template-site">
+        <a class="onesite" href="" target="_blank">
+            <div>
+                <img src="" alt="">
+                <div class="site-title"></div>
+            </div>
+        </a>
+    </template>
+
+
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary d-none" id="btn-modal" data-bs-toggle="modal"
+        data-bs-target="#staticBackdrop">
+        Launch static backdrop modal
+    </button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="form1">
+                        <h5 class="mb-2 text-center">Ajouter un raccourci</h5>
+                        <div class="mb-2">
+                            <input class="form-control form-control-sm" type="text" id="form-link-title"
+                                placeholder="titre">
+                        </div>
+                        <div class="mb-2">
+                            <input class="form-control form-control-sm" type="text" id="form-link-url"
+                                placeholder="url">
+                        </div>
+                        <div class="text-center">
+                            <button type="button" class="btn btn-primary btn-sm"
+                                onclick="addShortcut()">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
+
+    <script src="script/db.js"></script>
+    <script src="script/script.js"></script>
+    <script>
+        let conn = null;
+        let list = document.getElementById("list-links");
+        let list2 = document.getElementById("list-sites");
+        let toggle = document.getElementById("inputchecked");
+        toggle.checked = false;
+        (async () => {
+            openDB().then((data) => {
+                conn = data;
+            });
+            await wait(0.1);
+
+            if (toggle.checked == false) switchSection(1);
+            else switchSection(2);
+
+            //get my info
+            let user = await getById(conn, "user", 1);
+
+            //get shortcuts
+            let shortcuts = await getAll(conn, "link");
+            if ('content' in document.createElement('template')) {
+                const template = document.querySelector('#template-link');
+                for (let entry of shortcuts) {
+                    const clone = template.content.cloneNode(true);
+                    let a = clone.querySelector("a");
+                    a.href = entry["url"];
+                    a.querySelector(".delete span").addEventListener("click", deleteLink);
+                    a.querySelector(".delete span").setAttribute("data-id", entry["id"]);
+                    a.querySelector(".title").textContent = entry["title"];
+                    list.appendChild(a);
+                }
+            }
+
+            //get websites
+            let sites = await getAll(conn, "website");
+            let categories = await getAll(conn, "category"); console.log(sites, categories);
+            if ('content' in document.createElement('template')) {
+                const template2 = document.querySelector('#template-category');
+                const template3 = document.querySelector('#template-site');
+                for (let entry of categories) {
+                    let clone_category = template2.content.cloneNode(true);
+                    let onecategory = clone_category.querySelector(".onecategory");
+                    onecategory.querySelector(".category-title").textContent = entry["title"];
+                    let category_sites = onecategory.querySelector(".wrap-sites");
+                    for (let entry2 of sites) {
+                        let clone_site = template3.content.cloneNode(true);
+                        if (entry2["categoryid"] == entry["id"]) {
+                            let onesite = clone_site.querySelector("a");
+                            onesite.href = entry2["url"];
+                            onesite.querySelector("img").src = entry2["photo"];
+                            onesite.querySelector(".site-title").textContent = entry2["title"];
+                            category_sites.append(onesite);
+                        }
+                    }
+                    list2.append(onecategory);
+                }
+            }
+        })();
+        let menu = document.getElementById("home-menu");
+        document.getElementById("home").addEventListener("click", (e) => {
+            menu.style.display = "none"
+        });
+        document.getElementById("home").addEventListener("contextmenu", (e) => {
+            e.preventDefault();
+            menu.style.top = e.pageY + 5 + "px";
+            menu.style.left = e.pageX + 5 + "px";
+            menu.style.display = "block"
+        });
+
+        function deleteLink(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            let span = e.target;
+            let link = e.target.parentElement.parentElement;
+            link.remove();
+            deleteById(conn, "link", span.getAttribute("data-id"));
+        }
+
+        function reloadPage() {
+            location.reload();
+        }
+
+        document.getElementById("input-search").addEventListener("keyup", (e) => {
+            let keywords = e.target.value.toLowerCase();
+            if (toggle.checked == false) {
+                list.querySelectorAll(".link").forEach((elm) => {
+                    elm.style.display = "flex";
+                    if (!elm.querySelector(".title").textContent.toLowerCase().trim().includes(keywords)) elm.style.display = "none";
+                })
+            } else {
+                list2.querySelectorAll(".onesite").forEach((elm) => {
+                    elm.style.display = "block";
+                    if (!elm.querySelector(".site-title").textContent.toLowerCase().trim().includes(keywords)) elm.style.display = "none";
+                })
+            }
+        });
+
+        function showModal(n) {
+            menu.style.display = "none";
+            let modal = document.querySelector(".modal");
+            if (n == 1) {
+                let title = document.getElementById("form-link-title");
+                let url = document.getElementById("form-link-url");
+                title.value = "";
+                url.value = "";
+            }
+            let btn = document.getElementById("btn-modal");
+            btn.click();
+        }
+
+        async function addShortcut() {
+            let title = document.getElementById("form-link-title");
+            let url = document.getElementById("form-link-url");
+            let id = await add(conn, "link", { title: title.value, url: url.value });
+            let entry = await getById(conn, "link", id);
+            if ('content' in document.createElement('template')) {
+                const template = document.querySelector('#template-link');
+                const clone = template.content.cloneNode(true);
+                let a = clone.querySelector("a");
+                a.href = entry["url"];
+                a.querySelector(".delete span").addEventListener("click", deleteLink);
+                a.querySelector(".delete span").setAttribute("data-id", entry["id"]);
+                a.querySelector(".title").textContent = entry["title"];
+                list.appendChild(a);
+            }
+            document.querySelector(".btn-close").click();
+        }
+
+        function switchList(e) {
+            if (e.target.checked == true) switchSection(2);
+            else switchSection(1);
+        }
+        function switchSection(s) {
+            let s1 = document.getElementById("section1");
+            let s2 = document.getElementById("section2");
+            if (s == 1) {
+                s1.style.display = "block";
+                s2.style.display = "none";
+            }
+            if (s == 2) {
+                s1.style.display = "none";
+                s2.style.display = "block";
+            }
+        }
+    </script>
+</body>
+
+</html>
